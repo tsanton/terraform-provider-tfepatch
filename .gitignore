@@ -1,0 +1,7 @@
+.env
+*.terraform*
+*.tfvars*
+*.tfstate*
+.devcontainer
+ignore-*/
+*_template.txt
