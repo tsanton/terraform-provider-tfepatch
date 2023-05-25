@@ -7,4 +7,5 @@ ignore-*/
 *_template.txt
 azure-backend.tf
 azure-remote-state.tf
+azure-secrets.tf
 environments/
