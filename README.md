@@ -91,8 +91,8 @@ While you read up on what each of those actions do individually, rest assured th
 
 ## **Authentication for consumption**
 
-In order to use a remote published artifacts, we must authenticate to our Terraform Cloud Organization. To do so, we can create a .terraformrc holding the terraform API token:
-See [this](https://developer.hashicorp.com/terraform/cli/config/config-file) doc for where to place your `.terraformrc` file. \
+In order to use a remote published artifacts, we must authenticate to our Terraform Cloud Organization. \
+To do so, we can create a .terraformrc holding the terraform API token: See [this](https://developer.hashicorp.com/terraform/cli/config/config-file) doc for where to place your `.terraformrc` file.
 
 ```hcl
 credentials "app.terraform.io" {
@@ -100,7 +100,12 @@ credentials "app.terraform.io" {
 }
 ```
 
-As a sidenote I usually "cheat" and terraform init with either the path `TF_CLI_CONFIG_FILE="/path/to/.terraformrc" terraform init` or by declaring the environment variable `TERRAFORM_REGISTRY_TOKEN`
+As a sidenote I usually "cheat" mount/symlink the `.terraformrc` file into the users home (`~/`) directory.
+That our you can init with the following command:
+
+```sh
+TF_CLI_CONFIG_FILE="/path/to/.terraformrc" terraform init
+```
 
 ## **Extra: Generate Documentation for Wiki release?**
 
@@ -113,4 +118,5 @@ In short it boils down to completing the following steps:
 - Ensure the correct 'GOOS' and 'GOARCH' is set as environment variables
 - From your project root, run ```go generate ./...```
 
-This created a *./docs* output with merged information from your examples folder. See *main.go* for generate config.
+This created a *./docs* output with merged information from your examples folder. \
+See [main.go](./internal/main.go) for generate config.

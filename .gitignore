@@ -2,6 +2,9 @@
 *.terraform*
 *.tfvars*
 *.tfstate*
-.devcontainer
+*.devcontainer
 ignore-*/
 *_template.txt
+azure-backend.tf
+azure-remote-state.tf
+environments/
