@@ -1,4 +1,4 @@
-# **Terraform cloud private provider**
+# Terraform cloud private provider
 
 The goal of this project is to set up a custom terraform cloud provider registry, build our provider, and release it to terraform cloud where it can be distributed to our authenticated consumers.
 
@@ -9,7 +9,7 @@ Inspirations for this guide:
 - [Registry Providers API](https://developer.hashicorp.com/terraform/cloud-docs/api-docs/private-registry/providers#create-a-provider)
 - [API Authentication](https://developer.hashicorp.com/terraform/cloud-docs/api-docs#authentication)
 
-## **TL;DR**
+## TL;DR
 
 We're going to complete the following steps:
 
@@ -19,9 +19,9 @@ We're going to complete the following steps:
 - Push the repository to your Git (enable XXXX) and trigger our pipeline
 - Authenticate to Terraform Cloud and init our new CI/CD provider platform version
 
-## **Bootstrap**
+## Bootstrap
 
-### **Terraform Cloud API Token**
+### Terraform Cloud API Token
 
 Firstly you must sign into your [terraform cloud organization](https://app.terraform.io/) and create API keys.
 
@@ -35,7 +35,7 @@ For the CI/CD of our provider, we chose to utilize the `team token` from the own
 
 FYI: You must be a member of the owners team or a team with Manage Private Registry permissions to publish and delete private providers from the private registry.
 
-### **Terraform Cloud GPG key**
+### Terraform Cloud GPG key
 
 First run this [makefile](./internal/Makefile) to create a local copy (0.0.1) of the provider. We will utilise this provider to generate a GPG key, upload that key to the Terraform Cloud Registry, and to create our registry provider platform.
 
@@ -48,7 +48,7 @@ As you'll see from the resource configuration, for private providers the namespa
 
 Do not `terrform init` just yet. You must first complete the next step.
 
-### **GitHub Action**
+### GitHub Action
 
 For [this](./.github/workflows/release.yml) release pipeline to run you must first upload the following secret and variables to your GitHub respository:
 
@@ -71,11 +71,11 @@ This is the point in time where we go `terraform apply`
 
 **NB! Store the your terraform state away in a secure remote backend**.
 
-## **Test and build the provider**
+## Test and build the provider
 
 This provider comes with integration tests, but they're not run in the release pipeline. Feel free to add that step for yourself.
 
-## **Release to Terraform cloud**
+## Release to Terraform cloud
 
 As a last step prior to fireing off our release we must configure our repo to `choose whether GitHub Actions can create pull requests or submit approving pull requests reviews`; naturally we want this!
 
@@ -89,7 +89,7 @@ The release entails a few steps:
 
 While you read up on what each of those actions do individually, rest assured that your provider is being released as we speak.
 
-## **Authentication for consumption**
+## Authentication for consumption
 
 In order to use a remote published artifacts, we must authenticate to our Terraform Cloud Organization. \
 To do so, we can create a .terraformrc holding the terraform API token: See [this](https://developer.hashicorp.com/terraform/cli/config/config-file) doc for where to place your `.terraformrc` file.
@@ -107,16 +107,22 @@ That our you can init with the following command:
 TF_CLI_CONFIG_FILE="/path/to/.terraformrc" terraform init
 ```
 
-## **Extra: Generate Documentation for Wiki release?**
+## Extra: Generate Documentation for Wiki release?
 
 See [this](https://developer.hashicorp.com/terraform/tutorials/providers/provider-release-publish#generate-provider-documentation) for how to automatically generate docs.
 In short it boils down to completing the following steps:
 
 - run ```go get -d github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs```
 - Create a *tools* folder with a *tools.go* in your go.mod working directory
-- Modify your main.go to include *generate*
+- Modify your main.go to include the following comments in your main.go:
+
+    ```go
+    //Generate the Terraform provider documentation using `tfplugindocs`:
+    //go:generate go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs generate --provider-name <your-provider-name>
+    ```
+
 - Ensure the correct 'GOOS' and 'GOARCH' is set as environment variables
-- From your project root, run ```go generate ./...```
+- From your project root, run ```GOOS=linux GOARCH=amd64 go generate ./...```
 
 This created a *./docs* output with merged information from your examples folder. \
 See [main.go](./internal/main.go) for generate config.
