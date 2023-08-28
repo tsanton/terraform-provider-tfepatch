@@ -69,8 +69,6 @@ Now again, navigate into the [./terraform](./terraform/) directory and supply th
 
 This is the point in time where we go `terraform apply`
 
-**NB! Store the your terraform state away in a secure remote backend**.
-
 ## Test and build the provider
 
 This provider comes with integration tests, but they're not run in the release pipeline. Feel free to add that step for yourself.
@@ -101,28 +99,59 @@ credentials "app.terraform.io" {
 ```
 
 As a sidenote I usually "cheat" mount/symlink the `.terraformrc` file into the users home (`~/`) directory.
-That our you can init with the following command:
-
-```sh
-TF_CLI_CONFIG_FILE="/path/to/.terraformrc" terraform init
-```
 
 ## Extra: Generate Documentation for Wiki release?
 
-See [this](https://developer.hashicorp.com/terraform/tutorials/providers/provider-release-publish#generate-provider-documentation) for how to automatically generate docs.
-In short it boils down to completing the following steps:
+First you must create examples of how to use your resources and data sources. This must be done in the [<package-root>./examples](./internal/examples/) directory. \
+The expected folder structure and file names are as follows:
 
-- run ```go get -d github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs```
+```txt
+└── examples/
+    ├── resources/
+    │ ├── <provider-name>_<resource-name>/
+    │ │ ├── resource.tf
+    │ │ └── import.sh
+    │ └── <provider-name>_another_resource/
+    │ ├── resource.tf
+    │ └── import.sh
+    ├── data-sources/
+    │ ├── <provider-name>_<data-source-name>/
+    │ │ ├── resource.tf
+    │ │ └── import.sh
+    │ └── <provider-name>_another_data_source/
+    │ ├── resource.tf
+    │ └── import.sh
+    └── provider/
+    └── provider.tf
+```
+
+In order to automate the docs generation we must complete the following steps:
+
+- Setup your ./examples folder according to the structure above and fill the files (.tf and .sh) with resource usage definition and example import statements.
+- Run ```go get -d github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs```
 - Create a *tools* folder with a *tools.go* in your go.mod working directory
-- Modify your main.go to include the following comments in your main.go:
+  - Add the following to [tools.go](./internal/tools/tools.go):
+
+    ```go
+    //go:build tools
+    package tools
+
+    import (
+        // Documentation generation
+        _ "github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs"
+    )
+    ```
+
+- Modify your [main.go](./internal/main.go) to include the following comments in your main.go:
 
     ```go
     //Generate the Terraform provider documentation using `tfplugindocs`:
-    //go:generate go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs generate --provider-name <your-provider-name>
+    //go:generate go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs generate --provider-name <**insert-your-provider-name**>
     ```
 
 - Ensure the correct 'GOOS' and 'GOARCH' is set as environment variables
 - From your project root, run ```GOOS=linux GOARCH=amd64 go generate ./...```
 
 This created a *./docs* output with merged information from your examples folder. \
-See [main.go](./internal/main.go) for generate config.
+
+See [this](https://developer.hashicorp.com/terraform/tutorials/providers/provider-release-publish#generate-provider-documentation) for more info.
