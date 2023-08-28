@@ -37,7 +37,8 @@ FYI: You must be a member of the owners team or a team with Manage Private Regis
 
 ### Terraform Cloud GPG key
 
-First run this [makefile](./internal/Makefile) to create a local copy (0.0.1) of the provider. We will utilise this provider to generate a GPG key, upload that key to the Terraform Cloud Registry, and to create our registry provider platform.
+First run this [makefile](./internal/Makefile) to create a local copy (0.0.1) of the provider. \
+We will utilise this provider to upload the public GPG key to the Terraform Cloud Registry, and to create our registry provider platform.
 
 Navigate into the [./terraform](./terraform/) directory and supply the following key value pairs in a *providers.auto.tfvars* file:
 
@@ -50,7 +51,9 @@ Do not `terrform init` just yet. You must first complete the next step.
 
 ### GitHub Action
 
-For [this](./.github/workflows/release.yml) release pipeline to run you must first upload the following secret and variables to your GitHub respository:
+Creating the GPG-key and the provider platform gives you a base to create releases out from. \
+To generate versioned releases we will use [this](./.github/workflows/release.yml) release pipeline. \
+For it to run we must first upload the following secret and variables to your GitHub respository:
 
 - secrets.TFE_TOKEN
 - secrets.GPG_PRIVATE_KEY
@@ -60,9 +63,10 @@ For [this](./.github/workflows/release.yml) release pipeline to run you must fir
 - vars.TFE_PROVIDER_NAME
 - vars.TFE_GPG_KEY_ID
 
-All these secrets and variables will be uploaded to your repository as long as you utilise the included [terraform boostrap](./terraform/) code.
+These secrets and variables will be uploaded to your repository if you utilise the included [terraform boostrap](./terraform/) code. \
+If you don't have access to create a GitHub personal access token (PAT) or have access to a GitHub Application, feel free to remote the [github.tf](./terraform/github.tf) script, remove the [provider](./terraform/providers.tf) configuration for the `GitHub provider`, remove the [variable](./terraform/variables.tf) references and manually upload your secrets.
 
-Now again, navigate into the [./terraform](./terraform/) directory and supply the following additional key value pairs in a *providers.auto.tfvars* file:
+If you opt to upload the secrets and variables to GitHub through terraform, navigate to the [./terraform](./terraform/) directory and supply the following additional key value pairs in a *providers.auto.tfvars* file:
 
 - github_repository_name="name-of-forked-repo"
 - github_token="my-personal-access-token-with-read-write-on-repository-and-workflows"
@@ -75,16 +79,15 @@ This provider comes with integration tests, but they're not run in the release p
 
 ## Release to Terraform cloud
 
-As a last step prior to fireing off our release we must configure our repo to `choose whether GitHub Actions can create pull requests or submit approving pull requests reviews`; naturally we want this!
+As a last step prior to fireing off our release we must configure our repo to allow `[...] whether GitHub Actions can create pull requests or submit approving pull requests reviews`: we want this!
 
-When this is in order, commit with a conventional commit message along the line of `feat: init release` and push your code. This should trigger the release of your provider.
+We're almost ready to commit and generate our first release. Note that the release entails a few steps:
 
-The release entails a few steps:
-
-- Use [release-please-actions](https://github.com/google-github-actions/release-please-action) to generate semantic versioned tag based off [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/)
+- We use [release-please-actions](https://github.com/google-github-actions/release-please-action) to generate semantic versioned tag based off [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/)
 - Use [goreleaser](https://github.com/goreleaser/goreleaser-action) to create and upload the release assets to your tag
 - Use [this](https://github.com/Tsanton/tfe-provider-release-action) composite action to create a new provider version and to upload your provider binaries.
 
+Create a commit with a conventional commit message along the line of `feat: init release` and push your code. This should trigger the release of your provider.
 While you read up on what each of those actions do individually, rest assured that your provider is being released as we speak.
 
 ## Authentication for consumption
@@ -98,7 +101,7 @@ credentials "app.terraform.io" {
 }
 ```
 
-As a sidenote I usually "cheat" mount/symlink the `.terraformrc` file into the users home (`~/`) directory.
+I find that mounting or using symlink to place the `.terraformrc` file into the users home (`~/`) directory is the easiest way to ensure access to the token for authentication purposes.
 
 ## Extra: Generate Documentation for Wiki release?
 
@@ -152,6 +155,7 @@ In order to automate the docs generation we must complete the following steps:
 - Ensure the correct 'GOOS' and 'GOARCH' is set as environment variables
 - From your project root, run ```GOOS=linux GOARCH=amd64 go generate ./...```
 
-This created a *./docs* output with merged information from your examples folder. \
+This created a *./docs* output with merged information from your examples folder and the resource/attribute descriptions. \
+This *docs* folder can then be released in order to provide proper documentation of the usage of your custom provider.
 
-See [this](https://developer.hashicorp.com/terraform/tutorials/providers/provider-release-publish#generate-provider-documentation) for more info.
+See [this](https://developer.hashicorp.com/terraform/tutorials/providers/provider-release-publish#generate-provider-documentation) for more info about how to generate docs.
